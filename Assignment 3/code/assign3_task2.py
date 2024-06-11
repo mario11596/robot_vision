@@ -10,7 +10,7 @@ MAX_DEPTH = 80
 def load_gt_images_from_folder(folder):
     images = []
     filenames = []
-    for filename in os.listdir(folder):
+    for filename in sorted(os.listdir(folder)):
         img = cv2.imread(os.path.join(folder, filename), cv2.IMREAD_UNCHANGED)
         if img is not None:
             img = img.astype(np.float32) / 256.0
@@ -23,7 +23,7 @@ def load_npy_from_folder(folder):
     npy = []
     filenames = []
     delimiter = '_'
-    for filename in os.listdir(folder):
+    for filename in sorted(os.listdir(folder)):
         if filename.endswith('npy'):
             filepath = os.path.join(folder, filename)
             array = np.load(filepath)
