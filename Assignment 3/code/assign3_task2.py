@@ -1,14 +1,13 @@
 import os
 import cv2
 import numpy as np
-from layers import disp_to_depth
 
 STEREO_SCALE_FACTOR = 5.4
 MIN_DEPTH = 0.001
 MAX_DEPTH = 80
 
 
-def load_images_from_folder(folder):
+def load_gt_images_from_folder(folder):
     images = []
     filenames = []
     for filename in sorted(os.listdir(folder)):
@@ -17,19 +16,26 @@ def load_images_from_folder(folder):
             img = img.astype(np.float32) / 256.0
             images.append(img)
             filenames.append(filename)
-    return images, filenames
+    return images
 
 
 def load_npy_from_folder(folder):
     npy = []
+    filenames = []
+    delimiter = '_'
     for filename in os.listdir(folder):
         if filename.endswith('npy'):
             filepath = os.path.join(folder, filename)
             array = np.load(filepath)
             squeezed_array = np.squeeze(array, axis=0)
             npy.append(squeezed_array)
+
+            name, ext = os.path.splitext(filename)
+            filename = name.split(delimiter)
+            filename_part = filename[:-1]
+            filenames.append(delimiter.join(filename_part))
     np_con = np.concatenate(npy, axis=0)
-    return np_con
+    return np_con, filenames
 
 
 def compute_rmse(gt, pred):
@@ -37,24 +43,25 @@ def compute_rmse(gt, pred):
     mask = gt > 0
 
     pred = cv2.resize(pred, (gt_width, gt_height))
-    _, gt = disp_to_depth(gt, MIN_DEPTH, MAX_DEPTH)
-    pred *= STEREO_SCALE_FACTOR
 
     pred = pred[mask]
     gt = gt[mask]
 
-    rmse = np.sqrt(((gt[:, np.newaxis] - pred) ** 2).mean())
+    pred[pred < MIN_DEPTH] = MIN_DEPTH
+    pred[pred > MAX_DEPTH] = MAX_DEPTH
+
+    rmse = np.sqrt(((gt - pred) ** 2).mean())
     return rmse
 
 
 def main():
-    pred_images, pred_filenames = load_images_from_folder('images')
-    gt_images = load_npy_from_folder('npy_files')
+    gt_images = load_gt_images_from_folder('ground_truth')
+    pred_npy, pred_filenames = load_npy_from_folder('npy_files')
 
-    assert len(pred_images) == len(gt_images), "Mismatch in number of images"
+    assert len(pred_npy) == len(gt_images), "Mismatch in number of images"
 
     average_all_images = []
-    for gt, pred, filename in zip(gt_images, pred_images, pred_filenames):
+    for gt, pred, filename in zip(gt_images, pred_npy, pred_filenames):
         rmse = compute_rmse(gt, pred)
         average_all_images.append(rmse)
 
