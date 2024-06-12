@@ -36,7 +36,9 @@ def load_monodepth_prediction():
 def unimatch_calculation():
     os.chdir("./unimatch/scripts")
     os.system('bash ./unimatch.sh')
+
     time.sleep(5)
+    
     os.chdir("../..")
 
     return
@@ -203,7 +205,7 @@ def calculation_error(gt_images, data_unimatch_prediction, data_monodepth_predic
 if __name__ == "__main__":
     monodepth_npy_files = load_monodepth_prediction()
     gt_images, gt_filename = load_gt_images_from_folder("./Task4/GT_disparities/disp_noc_0/")
-    #unimatch_calculation()
+    unimatch_calculation()
     data_unimatch_prediction  = read_pfm_unimatch()
 
     calculation_error(gt_images, data_unimatch_prediction, monodepth_npy_files, gt_filename)
