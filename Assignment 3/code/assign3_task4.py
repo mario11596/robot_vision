@@ -129,8 +129,6 @@ def abs_difference(gt, pred, filename):
     img = np.uint16(diff * 256)
     cv2.imwrite(filename, img)
 
-    print(f"Absolute difference RMSE for image {filename} is: {diff}")
-
     return diff
 
 
@@ -151,7 +149,7 @@ def calculation_error(gt_images, data_unimatch_prediction, data_monodepth_predic
     length = len(gt_images)
 
 
-    print(f'Start calulcation of RMSE for {length} images')
+    print(f'Start calulcation')
     for i in range(length):
        
         gt_disparity = gt_images[i].astype(np.float32) / 256.0
